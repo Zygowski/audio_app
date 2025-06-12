@@ -30,16 +30,14 @@ def extract_audio_from_video(video_bytes):
     
     clip.close()
     return audio_path
-#######
+
 
 def transcribe_audio_file(file_path):
-    try:
+    
         result = openai.Audio.transcribe("whisper-1", open(file_path, "rb"))
+        
         return result["text"]
-    except Exception as e:
-        st.error(f"Błąd podczas transkrypcji: {e}")
-        return ""
-####    
+
 
 # Uploader dostosowany do wybranego typu
 if file_option == "🎬 Wideo":
@@ -70,12 +68,12 @@ if uploaded_file is not None:
             audio_bytes = f.read()
             st.audio(audio_bytes, format="audio/mp3")
             st.download_button("⬇️ Pobierz audio (.mp3)", data=audio_bytes, file_name="audio.mp3", mime="audio/mp3")
-###
+
                 # Transkrypcja audio na tekst
         transcribed_text = transcribe_audio_file(audio_path)
         if transcribed_text:
             st.header("📝 Transkrypcja audio")
             st.text_area("", transcribed_text, height=300)
         
-###        
+       
         os.remove(audio_path)
