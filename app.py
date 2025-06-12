@@ -29,15 +29,27 @@ def extract_audio_from_video(video_bytes):
 
     
     clip.close()
+    os.remove(video_path)  # Usunięcie tymczasowego pliku wideo
     return audio_path
 
 
-def transcribe_audio_file(file_path):
-    
-        result = openai.Audio.transcribe("whisper-1", open(file_path, "rb"))
-        
-        return result["text"]
+def transcribe_audio(file_path):
+     
+    audio_file = open(file_path, "rb")
+    transcript = openai.Audio.transcribe("whisper-1", audio_file)
+    return transcript["text"]
 
+def summarize_text(text):
+    response = openai.ChatCompletion.create(
+        model="gpt-4o-mini",
+        messages=[
+            {"role": "system", "content": "Jesteś asystentem, który tworzy zwięzłe notatki na podstawie transkrypcji."},
+            {"role": "user", "content": f"Podsumuj poniższy tekst:\n\n{text}"}
+        ],
+        temperature=0.3,
+        max_tokens=300,
+    )
+    return response.choices[0].message['content'].strip()
 
 # Uploader dostosowany do wybranego typu
 if file_option == "🎬 Wideo":
@@ -60,20 +72,19 @@ if uploaded_file is not None:
                 temp_audio.write(file_bytes)
                 temp_audio.flush()
                 audio_path = temp_audio.name
+        
+        
+        transcription = transcribe_audio(audio_path)
+        st.markdown("### 🗒️ Transkrypcja:")
+        st.write(transcription)
 
-    if audio_path:
-        st.success("✅ Audio gotowe!")
+        summary = summarize_text(transcription)
+        st.markdown("### 📝 Podsumowanie:")
+        st.write(summary)
 
         with open(audio_path, "rb") as f:
             audio_bytes = f.read()
             st.audio(audio_bytes, format="audio/mp3")
             st.download_button("⬇️ Pobierz audio (.mp3)", data=audio_bytes, file_name="audio.mp3", mime="audio/mp3")
 
-                # Transkrypcja audio na tekst
-        transcribed_text = transcribe_audio_file(audio_path)
-        if transcribed_text:
-            st.header("📝 Transkrypcja audio")
-            st.text_area("", transcribed_text, height=300)
-        
-       
         os.remove(audio_path)
