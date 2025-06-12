@@ -1,4 +1,5 @@
 import streamlit as st
+import openai
 from moviepy.editor import VideoFileClip
 import tempfile
 import os
@@ -6,26 +7,39 @@ import os
 st.set_page_config(page_title="Audio Extractor", layout="centered")
 st.title("🎧 Aplikacja do podsumowywania audio i wideo – v3")
 
+openai.api_key = st.secrets["OPENAI_API_KEY"]
+
 # Wybór typu pliku
 file_option = st.radio("Wybierz typ pliku do przesłania:", ["🎬 Wideo", "🎵 Audio"])
 
 def extract_audio_from_video(video_bytes):
+    
+    with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as temp_video: # tworzenie tymczasowego pliku wideo
+        temp_video.write(video_bytes) # zapisanie przesłanych danych do pliku
+        temp_video.flush() # zapewnienie że plik jest zapisany 
+        video_path = temp_video.name
+
+    clip = VideoFileClip(video_path)
+    audio = clip.audio
+
+    with tempfile.NamedTemporaryFile(suffix=".mp3", delete=False) as temp_audio:
+        audio.write_audiofile(temp_audio.name) # zapisanie audio do tymczasowego pliku
+        return temp_audio.name
+
+
+    
+    clip.close()
+    return audio_path
+#######
+
+def transcribe_audio_file(file_path):
     try:
-        with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as temp_video:
-            temp_video.write(video_bytes)
-            temp_video.flush()
-            video_path = temp_video.name
-
-        video_clip = VideoFileClip(video_path)
-        audio = video_clip.audio
-
-        with tempfile.NamedTemporaryFile(suffix=".mp3", delete=False) as temp_audio:
-            audio.write_audiofile(temp_audio.name)
-            return temp_audio.name
-
+        result = openai.Audio.transcribe("whisper-1", open(file_path, "rb"))
+        return result["text"]
     except Exception as e:
-        st.error(f"Błąd podczas wyodrębniania audio: {e}")
-        return None
+        st.error(f"Błąd podczas transkrypcji: {e}")
+        return ""
+####    
 
 # Uploader dostosowany do wybranego typu
 if file_option == "🎬 Wideo":
@@ -56,5 +70,12 @@ if uploaded_file is not None:
             audio_bytes = f.read()
             st.audio(audio_bytes, format="audio/mp3")
             st.download_button("⬇️ Pobierz audio (.mp3)", data=audio_bytes, file_name="audio.mp3", mime="audio/mp3")
-
+###
+                # Transkrypcja audio na tekst
+        transcribed_text = transcribe_audio_file(audio_path)
+        if transcribed_text:
+            st.header("📝 Transkrypcja audio")
+            st.text_area("", transcribed_text, height=300)
+        
+###        
         os.remove(audio_path)
