@@ -6,6 +6,9 @@ import os
 st.set_page_config(page_title="Audio Extractor", layout="centered")
 st.title("🎧 Aplikacja do podsumowywania audio i wideo – v3")
 
+# Wybór typu pliku
+file_option = st.radio("Wybierz typ pliku do przesłania:", ["🎬 Wideo (.mp4)", "🎵 Audio (.mp3, .wav, .m4a)"])
+
 def extract_audio_from_video(video_bytes):
     try:
         with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as temp_video:
@@ -24,7 +27,11 @@ def extract_audio_from_video(video_bytes):
         st.error(f"Błąd podczas wyodrębniania audio: {e}")
         return None
 
-uploaded_file = st.file_uploader("📤 Prześlij plik wideo (.mp4) lub audio (.mp3/.wav/.m4a)", type=["mp4", "mp3", "wav", "m4a"])
+# Uploader dostosowany do wybranego typu
+if file_option == "🎬 Wideo (.mp4)":
+    uploaded_file = st.file_uploader("Prześlij plik wideo (.mp4)", type=["mp4"])
+else:
+    uploaded_file = st.file_uploader("Prześlij plik audio (.mp3, .wav, .m4a)", type=["mp3", "wav", "m4a"])
 
 if uploaded_file is not None:
     file_bytes = uploaded_file.read()
@@ -33,11 +40,10 @@ if uploaded_file is not None:
     audio_path = None
 
     with st.spinner("⏳ Przetwarzanie..."):
-        if file_type == "video/mp4":
+        if file_option == "🎬 Wideo (.mp4)":
             st.video(file_bytes)
             audio_path = extract_audio_from_video(file_bytes)
-
-        elif file_type in ["audio/mpeg", "audio/wav", "audio/x-wav", "audio/mp4"]:
+        else:
             with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as temp_audio:
                 temp_audio.write(file_bytes)
                 temp_audio.flush()
