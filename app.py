@@ -40,11 +40,16 @@ def transcribe_audio(file_path):
     return transcript["text"]
 
 def summarize_text(text):
+    prompt = (
+        "Przekształć poniższą transkrypcję na zwięzłe, klarowne notatki punktowane:\n\n"
+        f"{text}\n\n"
+        "Notatki:"
+    )
     response = openai.ChatCompletion.create(
         model="gpt-4o-mini",
         messages=[
-            {"role": "system", "content": "Jesteś asystentem, który tworzy zwięzłe notatki na podstawie transkrypcji."},
-            {"role": "user", "content": f"Podsumuj poniższy tekst:\n\n{text}"}
+            {"role": "system", "content": "Jesteś pomocnym asystentem."},
+            {"role": "user", "content": prompt}
         ],
         temperature=0.3,
         max_tokens=300,
