@@ -7,7 +7,7 @@ st.set_page_config(page_title="Audio Extractor", layout="centered")
 st.title("🎧 Aplikacja do podsumowywania audio i wideo – v3")
 
 # Wybór typu pliku
-file_option = st.radio("Wybierz typ pliku do przesłania:", ["🎬 Wideo (.mp4)", "🎵 Audio (.mp3, .wav, .m4a)"])
+file_option = st.radio("Wybierz typ pliku do przesłania:", ["🎬 Wideo", "🎵 Audio"])
 
 def extract_audio_from_video(video_bytes):
     try:
