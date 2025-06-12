@@ -4,7 +4,7 @@ import tempfile
 import os
 
 st.set_page_config(page_title="Audio Extractor", layout="centered")
-st.title("🎬 Aplikacja do wyodrębniania audio z wideo – v3")
+st.title("🎧 Aplikacja do podsumowywania audio i wideo – v3")
 
 def extract_audio_from_video(video_bytes):
     try:
@@ -13,11 +13,9 @@ def extract_audio_from_video(video_bytes):
             temp_video.flush()
             video_path = temp_video.name
 
-        # Wczytaj wideo i wyciągnij audio
         video_clip = VideoFileClip(video_path)
         audio = video_clip.audio
 
-        # Zapisz audio do pliku tymczasowego
         with tempfile.NamedTemporaryFile(suffix=".mp3", delete=False) as temp_audio:
             audio.write_audiofile(temp_audio.name)
             return temp_audio.name
@@ -26,26 +24,31 @@ def extract_audio_from_video(video_bytes):
         st.error(f"Błąd podczas wyodrębniania audio: {e}")
         return None
 
-uploaded_video = st.file_uploader("📤 Prześlij plik wideo (.mp4)", type=["mp4"])
+uploaded_file = st.file_uploader("📤 Prześlij plik wideo (.mp4) lub audio (.mp3/.wav/.m4a)", type=["mp4", "mp3", "wav", "m4a"])
 
-if uploaded_video is not None:
-    video_bytes = uploaded_video.read()
+if uploaded_file is not None:
+    file_bytes = uploaded_file.read()
+    file_type = uploaded_file.type
 
-    st.video(video_bytes)
+    audio_path = None
 
     with st.spinner("⏳ Przetwarzanie..."):
-        audio_path = extract_audio_from_video(video_bytes)
+        if file_type == "video/mp4":
+            st.video(file_bytes)
+            audio_path = extract_audio_from_video(file_bytes)
+
+        elif file_type in ["audio/mpeg", "audio/wav", "audio/x-wav", "audio/mp4"]:
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as temp_audio:
+                temp_audio.write(file_bytes)
+                temp_audio.flush()
+                audio_path = temp_audio.name
 
     if audio_path:
-        st.success("✅ Audio zostało wyodrębnione!")
-        
-        # Odtwarzacz audio
+        st.success("✅ Audio gotowe!")
+
         with open(audio_path, "rb") as f:
             audio_bytes = f.read()
             st.audio(audio_bytes, format="audio/mp3")
+            st.download_button("⬇️ Pobierz audio (.mp3)", data=audio_bytes, file_name="audio.mp3", mime="audio/mp3")
 
-        # Przycisk do pobrania
-        st.download_button("⬇️ Pobierz audio (.mp3)", data=audio_bytes, file_name="audio.mp3", mime="audio/mp3")
-
-        # Usuń tymczasowy plik po użyciu
         os.remove(audio_path)
