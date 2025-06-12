@@ -1,7 +1,19 @@
 import streamlit as st
 from moviepy.editor import VideoFileClip
 import io
+import sys
+import subprocess
 
+st.write("Python path:", sys.executable)
+try:
+    import moviepy.editor
+    st.write("moviepy is installed")
+except ModuleNotFoundError:
+    st.write("moviepy NOT installed")
+
+# Pokaż listę pakietów pip:
+installed = subprocess.run([sys.executable, "-m", "pip", "list"], capture_output=True, text=True)
+st.text(installed.stdout)
 st.title("Aplikacja do podsumowywania audio i wideo - v3")
 
 file_type = st.radio("Wybierz typ pliku:", ("Audio", "Wideo"))
