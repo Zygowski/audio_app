@@ -28,7 +28,7 @@ def extract_audio_from_video(video_bytes):
         return None
 
 # Uploader dostosowany do wybranego typu
-if file_option == "🎬 Wideo (.mp4)":
+if file_option == "🎬 Wideo":
     uploaded_file = st.file_uploader("Prześlij plik wideo (.mp4)", type=["mp4"])
 else:
     uploaded_file = st.file_uploader("Prześlij plik audio (.mp3, .wav, .m4a)", type=["mp3", "wav", "m4a"])
@@ -40,7 +40,7 @@ if uploaded_file is not None:
     audio_path = None
 
     with st.spinner("⏳ Przetwarzanie..."):
-        if file_option == "🎬 Wideo (.mp4)":
+        if file_option == "🎬 Wideo":
             st.video(file_bytes)
             audio_path = extract_audio_from_video(file_bytes)
         else:
