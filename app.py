@@ -1,45 +1,51 @@
 import streamlit as st
 from moviepy.editor import VideoFileClip
-import io
-import sys
-import subprocess
+import tempfile
+import os
 
-st.write("Python path:", sys.executable)
-try:
-    import moviepy.editor
-    st.write("moviepy is installed")
-except ModuleNotFoundError:
-    st.write("moviepy NOT installed")
+st.set_page_config(page_title="Audio Extractor", layout="centered")
+st.title("🎬 Aplikacja do wyodrębniania audio z wideo – v3")
 
-# Pokaż listę pakietów pip:
-installed = subprocess.run([sys.executable, "-m", "pip", "list"], capture_output=True, text=True)
-st.text(installed.stdout)
-st.title("Aplikacja do podsumowywania audio i wideo - v3")
+def extract_audio_from_video(video_bytes):
+    try:
+        with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as temp_video:
+            temp_video.write(video_bytes)
+            temp_video.flush()
+            video_path = temp_video.name
 
-file_type = st.radio("Wybierz typ pliku:", ("Audio", "Wideo"))
+        # Wczytaj wideo i wyciągnij audio
+        video_clip = VideoFileClip(video_path)
+        audio = video_clip.audio
 
-if file_type == "Audio":
-    uploaded_audio = st.file_uploader("Wgraj plik audio", type=["mp3", "wav", "m4a"])
-    if uploaded_audio is not None:
-        st.audio(uploaded_audio, format="audio/mp3")
+        # Zapisz audio do pliku tymczasowego
+        with tempfile.NamedTemporaryFile(suffix=".mp3", delete=False) as temp_audio:
+            audio.write_audiofile(temp_audio.name)
+            return temp_audio.name
 
-elif file_type == "Wideo":
-    uploaded_video = st.file_uploader("Wgraj plik wideo", type=["mp4", "mov", "avi", "mkv"])
-    if uploaded_video is not None:
-        st.video(uploaded_video)
-        video_bytes = uploaded_video.read()
-        video_buffer = io.BytesIO(video_bytes)
+    except Exception as e:
+        st.error(f"Błąd podczas wyodrębniania audio: {e}")
+        return None
 
-        try:
-            clip = VideoFileClip(video_buffer)
-            audio_clip = clip.audio
+uploaded_video = st.file_uploader("📤 Prześlij plik wideo (.mp4)", type=["mp4"])
 
-            if audio_clip is not None:
-                audio_buffer = io.BytesIO()
-                audio_clip.write_audiofile(audio_buffer, codec='mp3', verbose=False, logger=None)
-                audio_buffer.seek(0)
-                st.audio(audio_buffer, format="audio/mp3")
-            else:
-                st.warning("To wideo nie zawiera ścieżki audio.")
-        except Exception as e:
-            st.error(f"Błąd podczas wyodrębniania audio: {e}")
+if uploaded_video is not None:
+    video_bytes = uploaded_video.read()
+
+    st.video(video_bytes)
+
+    with st.spinner("⏳ Przetwarzanie..."):
+        audio_path = extract_audio_from_video(video_bytes)
+
+    if audio_path:
+        st.success("✅ Audio zostało wyodrębnione!")
+        
+        # Odtwarzacz audio
+        with open(audio_path, "rb") as f:
+            audio_bytes = f.read()
+            st.audio(audio_bytes, format="audio/mp3")
+
+        # Przycisk do pobrania
+        st.download_button("⬇️ Pobierz audio (.mp3)", data=audio_bytes, file_name="audio.mp3", mime="audio/mp3")
+
+        # Usuń tymczasowy plik po użyciu
+        os.remove(audio_path)
