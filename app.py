@@ -1,4 +1,7 @@
 import streamlit as st
+from moviepy.editor import VideoFileClip
+import tempfile
+
 
 st.set_page_config(page_title="Audio Summarizer V2", layout="centered")
 st.title("Generetor notatek z audio")
