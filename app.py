@@ -1,33 +1,33 @@
 import streamlit as st
-import ffmpeg
+from moviepy.editor import VideoFileClip
+import io
 
-st.set_page_config(page_title="Audio/Video Summarizer V3", layout="centered")
-st.title("📼 Wgraj plik audio lub wideo")
+st.title("Aplikacja do podsumowywania audio i wideo - v3")
 
 file_type = st.radio("Wybierz typ pliku:", ("Audio", "Wideo"))
 
 if file_type == "Audio":
-    uploaded_audio = st.file_uploader("Wybierz plik audio", type=["mp3", "wav", "m4a"])
+    uploaded_audio = st.file_uploader("Wgraj plik audio", type=["mp3", "wav", "m4a"])
     if uploaded_audio is not None:
-        st.success(f"Wczytano plik audio: {uploaded_audio.name}")
         st.audio(uploaded_audio, format="audio/mp3")
 
 elif file_type == "Wideo":
-    uploaded_video = st.file_uploader("Wybierz plik wideo", type=["mp4", "mov", "avi", "mkv"])
+    uploaded_video = st.file_uploader("Wgraj plik wideo", type=["mp4", "mov", "avi", "mkv"])
     if uploaded_video is not None:
-        st.success(f"Wczytano plik wideo: {uploaded_video.name}")
         st.video(uploaded_video)
-
-        in_memory_video = uploaded_video.read()
+        video_bytes = uploaded_video.read()
+        video_buffer = io.BytesIO(video_bytes)
 
         try:
-            out, err = ffmpeg.run(
-                ffmpeg.input('pipe:0')
-                      .output('pipe:1', format='mp3', acodec='mp3'),
-                input=in_memory_video,
-                capture_stdout=True,
-                capture_stderr=True
-            )
-            st.audio(out, format='audio/mp3')
-        except ffmpeg.Error as e:
-            st.error(f"Błąd ffmpeg: {e.stderr.decode()}")
+            clip = VideoFileClip(video_buffer)
+            audio_clip = clip.audio
+
+            if audio_clip is not None:
+                audio_buffer = io.BytesIO()
+                audio_clip.write_audiofile(audio_buffer, codec='mp3', verbose=False, logger=None)
+                audio_buffer.seek(0)
+                st.audio(audio_buffer, format="audio/mp3")
+            else:
+                st.warning("To wideo nie zawiera ścieżki audio.")
+        except Exception as e:
+            st.error(f"Błąd podczas wyodrębniania audio: {e}")
