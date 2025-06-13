@@ -99,4 +99,6 @@ if uploaded_file is not None:
         st.markdown("### 📝 Notatka:")
         st.write(summary)
 
+        st.audio(file_bytes, format=file_type)
+        
         os.remove(audio_path)
