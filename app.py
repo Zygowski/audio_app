@@ -89,7 +89,10 @@ if uploaded_file is not None:
                 temp_audio.write(file_bytes)
                 temp_audio.flush()
                 audio_path = temp_audio.name
-        
+            # Odtwarzanie wyodrębnionego dźwięku
+        with open(audio_path, "rb") as audio_file:
+            audio_bytes = audio_file.read()
+            st.audio(audio_bytes, format="audio/mp3")
         
         transcription = transcribe_audio(audio_path)
         st.markdown("### 🗒️ Transkrypcja:")
@@ -98,7 +101,5 @@ if uploaded_file is not None:
         summary = summarize_text(transcription)
         st.markdown("### 📝 Notatka:")
         st.write(summary)
-
-        st.audio(file_bytes, format=file_type)
         
         os.remove(audio_path)
