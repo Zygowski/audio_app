@@ -59,8 +59,7 @@ def download_audio_from_youtube(url):
 
     ydl_opts = {
         'format': 'bestaudio/best',
-        'outtmpl': output_path,
-        # ffmpeg_location NIE jest wymagane na Streamlit Cloud – pomijamy
+        'outtmpl': 'downloaded_audio.%(ext)s',
         'postprocessors': [{
             'key': 'FFmpegExtractAudio',
             'preferredcodec': 'mp3',
