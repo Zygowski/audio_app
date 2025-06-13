@@ -64,7 +64,7 @@ def download_audio_from_youtube(url):
         'postprocessors': [{
             'key': 'FFmpegExtractAudio',
             'preferredcodec': 'mp3',
-            'ffmpeg_location': 'C:\Users\mikol\miniconda3\envs\audio_app\Library\bin\ffmpeg.exe',
+            'ffmpeg_location': r'C:\Users\mikol\miniconda3\envs\audio_app\Library\bin\ffmpeg.exe',
         }],
     }
 
