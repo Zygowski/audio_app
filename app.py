@@ -12,7 +12,7 @@ st.title("🎧 Generator podsumowań wideo i audio 🎧")
 if "OPENAI_API_KEY" in st.secrets:
     openai.api_key = st.secrets["OPENAI_API_KEY"]
 else:
-    st.warning("🔐 Nie znaleziono klucza API OpenAI.")
+    st.markdown("🔐 Nie znaleziono klucza API OpenAI.")
     st.markdown("Aby korzystać z tej aplikacji, wprowadź swój klucz API poniżej.")
     user_key = st.text_input("Wprowadź swój OpenAI API Key:", type="password")
     if user_key:
