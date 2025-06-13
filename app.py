@@ -3,6 +3,7 @@ import openai
 from moviepy.editor import VideoFileClip
 import tempfile
 import os
+import yt_dlp
 
 st.set_page_config(page_title="Audio Extractor", layout="centered")
 st.title("🎧 Generator podsumowań wideo i audio 🎧")
@@ -22,7 +23,8 @@ else:
 
 
 # Wybór typu pliku
-file_option = st.radio("Wybierz typ pliku do przesłania:", ["🎬 Wideo", "🎵 Audio"])
+source_option = st.radio("Wybierz źródło:", ["📂 Plik lokalny", "🌐 YouTube"])
+file_option = st.radio("Wybierz typ pliku:", ["🎬 Wideo", "🎵 Audio"])
 
 def extract_audio_from_video(video_bytes):
     
@@ -50,6 +52,26 @@ def transcribe_audio(file_path):
     audio_file = open(file_path, "rb")
     transcript = openai.Audio.transcribe("whisper-1", audio_file)
     return transcript["text"]
+
+
+def download_audio_from_youtube(url):
+    output_path = tempfile.NamedTemporaryFile(suffix=".mp3", delete=False).name
+
+    ydl_opts = {
+        'format': 'bestaudio/best',
+        'outtmpl': output_path,
+        'quiet': True,
+        'postprocessors': [{
+            'key': 'FFmpegExtractAudio',
+            'preferredcodec': 'mp3',
+        }],
+    }
+
+    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        ydl.download([url])
+
+    return output_path
+
 
 def split_text(text, max_chars=3000):
     chunks = []
@@ -84,33 +106,38 @@ def summarize_text(text):
         summaries.append(response.choices[0].message["content"].strip())
 
     return "\n\n".join(summaries)
+uploaded_file = None
+youtube_url = None
 
 # Uploader dostosowany do wybranego typu
-if file_option == "🎬 Wideo":
-    uploaded_file = st.file_uploader("Prześlij plik wideo (.mp4)", type=["mp4"])
+if source_option == "📂 Plik lokalny":
+    if file_option == "🎬 Wideo":
+        uploaded_file = st.file_uploader("Prześlij plik wideo (.mp4)", type=["mp4"])
+    else:
+        uploaded_file = st.file_uploader("Prześlij plik audio (.mp3, .wav, .m4a)", type=["mp3", "wav", "m4a"])
 else:
-    uploaded_file = st.file_uploader("Prześlij plik audio (.mp3, .wav, .m4a)", type=["mp3", "wav", "m4a"])
+    youtube_url = st.text_input("Wklej link do filmu na YouTube:")
 
-if uploaded_file is not None:
-    file_bytes = uploaded_file.read()
-    file_type = uploaded_file.type
-
-    audio_path = None
-
+if uploaded_file is not None or (youtube_url and source_option == "🌐 YouTube"):
     with st.spinner("⏳ Przetwarzanie..."):
-        if file_option == "🎬 Wideo":
-            st.video(file_bytes)
-            audio_path = extract_audio_from_video(file_bytes)
+        audio_path = None
+
+        if source_option == "📂 Plik lokalny":
+            file_bytes = uploaded_file.read()
+            if file_option == "🎬 Wideo":
+                st.video(file_bytes)
+                audio_path = extract_audio_from_video(file_bytes)
+            else:
+                with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as temp_audio:
+                    temp_audio.write(file_bytes)
+                    temp_audio.flush()
+                    audio_path = temp_audio.name
+                st.audio(file_bytes, format=uploaded_file.type)
         else:
-            with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as temp_audio:
-                temp_audio.write(file_bytes)
-                temp_audio.flush()
-                audio_path = temp_audio.name
-            # Odtwarzanie wyodrębnionego dźwięku
-        with open(audio_path, "rb") as audio_file:
-            audio_bytes = audio_file.read()
-            st.audio(audio_bytes, format="audio/mp3")
-        
+            st.info("⏬ Pobieranie audio z YouTube...")
+            audio_path = download_audio_from_youtube(youtube_url)
+            st.audio(audio_path)
+
         transcription = transcribe_audio(audio_path)
         st.markdown("### 🗒️ Transkrypcja:")
         st.write(transcription)
@@ -118,5 +145,5 @@ if uploaded_file is not None:
         summary = summarize_text(transcription)
         st.markdown("### 📝 Notatka:")
         st.write(summary)
-        
+
         os.remove(audio_path)
