@@ -7,16 +7,23 @@ import os
 st.set_page_config(page_title="Audio Extractor", layout="centered")
 st.title("🎧 Generator podsumowań wideo i audio 🎧")
 
-# Obsługa klucza API – z secrets lub ręcznego wpisania
-if "OPENAI_API_KEY" in st.secrets:
-    openai.api_key = st.secrets["OPENAI_API_KEY"]
-else:
-    st.warning("🔐 Nie znaleziono klucza API OpenAI. Wprowadź swój klucz poniżej.")
-    user_key = st.text_input("Wprowadź swój OpenAI API Key:", type="password")
-    if user_key:
-        openai.api_key = user_key
+# Obsługa klucza OpenAI API – z `st.secrets` lub ręcznego wpisania
+with st.container():
+    if "OPENAI_API_KEY" in st.secrets:
+        openai.api_key = st.secrets["OPENAI_API_KEY"]
+        st.success("✅ Klucz API został załadowany z konfiguracji.")
     else:
-        st.stop()
+        st.markdown("### 🔐 Klucz OpenAI API nie został znaleziony")
+        st.info("Aby korzystać z funkcji transkrypcji i podsumowania, wpisz swój klucz API poniżej.")
+
+        with st.expander("🔧 Wprowadź klucz API ręcznie"):
+            user_key = st.text_input("OpenAI API Key:", type="password", placeholder="sk-...")
+            if user_key:
+                openai.api_key = user_key
+                st.success("🔓 Klucz API ustawiony poprawnie.")
+            else:
+                st.warning("❌ Klucz API nie został podany. Aplikacja nie może kontynuować.")
+                st.stop()
 
 # Wybór typu pliku
 file_option = st.radio("Wybierz typ pliku do przesłania:", ["🎬 Wideo", "🎵 Audio"])
