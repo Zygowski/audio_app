@@ -96,7 +96,7 @@ if uploaded_file is not None:
         st.write(transcription)
 
         summary = summarize_text(transcription)
-        st.markdown("### 📝 Podsumowanie:")
+        st.markdown("### 📝 Notatka:")
         st.write(summary)
 
         with open(audio_path, "rb") as f:
