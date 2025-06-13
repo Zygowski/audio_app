@@ -5,9 +5,18 @@ import tempfile
 import os
 
 st.set_page_config(page_title="Audio Extractor", layout="centered")
-st.title("🎧 Aplikacja do podsumowywania audio i wideo – v3")
+st.title("🎧 Generator podsumowań wideo i audio 🎧")
 
-openai.api_key = st.secrets["OPENAI_API_KEY"]
+# Obsługa klucza API – z secrets lub ręcznego wpisania
+if "OPENAI_API_KEY" in st.secrets:
+    openai.api_key = st.secrets["OPENAI_API_KEY"]
+else:
+    st.warning("🔐 Nie znaleziono klucza API OpenAI. Wprowadź swój klucz poniżej.")
+    user_key = st.text_input("Wprowadź swój OpenAI API Key:", type="password")
+    if user_key:
+        openai.api_key = user_key
+    else:
+        st.stop()
 
 # Wybór typu pliku
 file_option = st.radio("Wybierz typ pliku do przesłania:", ["🎬 Wideo", "🎵 Audio"])
