@@ -54,12 +54,12 @@ def transcribe_audio(file_path):
 def split_text(text, max_chars=3000):
     chunks = []
     while len(text) > max_chars:
-        split_index = text.rfind('.', 0, max_chars)
+        split_index = text.rfind('.', 0, max_chars) # szukanie ostaniej kropki żeby ładnie podzielić tekst 
         if split_index == -1:
-            split_index = max_chars
-        chunks.append(text[:split_index + 1].strip())
-        text = text[split_index + 1:].strip()
-    chunks.append(text)
+            split_index = max_chars # jak nie ma kropki to kroji w miejscie max_chars
+        chunks.append(text[:split_index + 1].strip()) # wycinamy tekst +1 czyli kropka 
+        text = text[split_index + 1:].strip() # skracamy cały tekst o to co juz zostało przetworzone
+    chunks.append(text) # gdy jest juz podzielone dodajemy reszte tekstu jako ostatni fragment
     return chunks
 
 def summarize_text(text):
