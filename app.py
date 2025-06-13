@@ -99,9 +99,4 @@ if uploaded_file is not None:
         st.markdown("### 📝 Notatka:")
         st.write(summary)
 
-        with open(audio_path, "rb") as f:
-            audio_bytes = f.read()
-            st.audio(audio_bytes, format="audio/mp3")
-            st.download_button("⬇️ Pobierz audio (.mp3)", data=audio_bytes, file_name="audio.mp3", mime="audio/mp3")
-
         os.remove(audio_path)
