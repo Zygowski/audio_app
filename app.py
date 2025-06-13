@@ -51,22 +51,39 @@ def transcribe_audio(file_path):
     transcript = openai.Audio.transcribe("whisper-1", audio_file)
     return transcript["text"]
 
+def split_text(text, max_chars=3000):
+    chunks = []
+    while len(text) > max_chars:
+        split_index = text.rfind('.', 0, max_chars)
+        if split_index == -1:
+            split_index = max_chars
+        chunks.append(text[:split_index + 1].strip())
+        text = text[split_index + 1:].strip()
+    chunks.append(text)
+    return chunks
+
 def summarize_text(text):
-    prompt = (
-        "Przekształć poniższą transkrypcję na zwięzłe, klarowne notatki punktowane:\n\n"
-        f"{text}\n\n"
-        "Notatki:"
-    )
-    response = openai.ChatCompletion.create(
-        model="gpt-4o-mini",
-        messages=[
-            {"role": "system", "content": "Jesteś pomocnym asystentem."},
-            {"role": "user", "content": prompt}
-        ],
-        temperature=0.3,
-        max_tokens=300,
-    )
-    return response.choices[0].message['content'].strip()
+    chunks = split_text(text)
+    summaries = []
+
+    for i, chunk in enumerate(chunks):
+        prompt = (
+            "Przekształć poniższą transkrypcję na zwięzłe, klarowne notatki punktowane:\n\n"
+            f"{chunk}\n\n"
+            "Notatki:"
+        )
+        response = openai.ChatCompletion.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": "Jesteś pomocnym asystentem."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.3,
+            max_tokens=1000,
+        )
+        summaries.append(response.choices[0].message["content"].strip())
+
+    return "\n\n".join(summaries)
 
 # Uploader dostosowany do wybranego typu
 if file_option == "🎬 Wideo":
