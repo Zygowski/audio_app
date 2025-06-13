@@ -60,7 +60,7 @@ def download_audio_from_youtube(url):
     ydl_opts = {
         'format': 'bestaudio/best',
         'outtmpl': 'path/to/output/file.%(ext)s',
-        'ffmpeg_location': r'C:\Users\mikol\miniconda3\envs\audio_app\Library\bin',
+        'ffmpeg_location': r'C:\Users\mikol\miniconda3\envs\audio_app\Library\bin\ffmpeg.exe',
         'postprocessors': [{
             'key': 'FFmpegExtractAudio',
             'preferredcodec': 'mp3',
