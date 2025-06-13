@@ -2,3 +2,5 @@ streamlit
 moviepy==1.0.3
 imageio-ffmpeg==0.4.7
 openai==0.27.0
+yt-dlp==2024.04.09
+
