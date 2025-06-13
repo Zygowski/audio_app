@@ -55,22 +55,23 @@ def transcribe_audio(file_path):
 
 
 def download_audio_from_youtube(url):
-    output_path = "downloaded_audio.%(ext)s"
+    output_path = "downloaded_audio.mp3"
 
     ydl_opts = {
         'format': 'bestaudio/best',
-        'outtmpl': 'downloaded_audio.%(ext)s',
+        'outtmpl': output_path,
         'postprocessors': [{
             'key': 'FFmpegExtractAudio',
             'preferredcodec': 'mp3',
             'preferredquality': '192',
         }],
+        'noplaylist': True
     }
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         ydl.download([url])
 
-    return "downloaded_audio.mp3"
+    return output_path
 
 
 def split_text(text, max_chars=3000):
