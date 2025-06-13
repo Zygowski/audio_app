@@ -55,11 +55,12 @@ def transcribe_audio(file_path):
 
 
 def download_audio_from_youtube(url):
-    output_path = tempfile.NamedTemporaryFile(suffix=".mp3", delete=False).name
+    output_path = "downloaded_audio.%(ext)s"
 
     ydl_opts = {
         'format': 'bestaudio/best',
-        'outtmpl': 'downloaded_audio.%(ext)s',
+        'outtmpl': output_path,
+        # ffmpeg_location NIE jest wymagane na Streamlit Cloud – pomijamy
         'postprocessors': [{
             'key': 'FFmpegExtractAudio',
             'preferredcodec': 'mp3',
@@ -70,7 +71,7 @@ def download_audio_from_youtube(url):
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         ydl.download([url])
 
-    return output_path
+    return "downloaded_audio.mp3"
 
 
 def split_text(text, max_chars=3000):
