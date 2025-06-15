@@ -2,9 +2,7 @@ import streamlit as st
 import openai
 from moviepy.editor import VideoFileClip
 import tempfile
-from pytube import YouTube
 import os
-from pydub import AudioSegment
 import yt_dlp
 
 st.set_page_config(page_title="Audio Extractor", layout="centered")
@@ -57,21 +55,22 @@ def transcribe_audio(file_path):
 
 
 def download_audio_from_youtube(url):
-    yt = YouTube(url)
-    stream = yt.streams.filter(only_audio=True).first()
-    downloaded_file = stream.download(filename="temp_audio")
-    
-    # Konwersja do MP3 (wymaga ffmpeg i pydub)
-    base, ext = os.path.splitext(downloaded_file)
-    mp3_file = base + ".mp3"
-    
-    audio = AudioSegment.from_file(downloaded_file)
-    audio.export(mp3_file, format="mp3")
+    output_path = "downloaded_audio.mp3"
+    ydl_opts = {
+        'format': 'bestaudio/best',
+        'outtmpl': output_path,
+        'postprocessors': [{
+            'key': 'FFmpegExtractAudio',
+            'preferredcodec': 'mp3',
+            'preferredquality': '192',
+        }],
+        'quiet': True,
+    }
 
-    # Usuń plik źródłowy (np. .webm)
-    os.remove(downloaded_file)
+    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        ydl.download([url])
 
-    return mp3_file
+    return output_path
 
 
 def split_text(text, max_chars=3000):
