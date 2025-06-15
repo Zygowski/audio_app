@@ -6,7 +6,7 @@ import os
 import yt_dlp
 
 st.set_page_config(page_title="Audio Extractor", layout="centered")
-st.title("🎧 Generator podsumowań wideo i audio 🎧")
+st.title("🎧  podsumowań wideo i audio 🎧")
 
 # Obsługa klucza OpenAI API – z `st.secrets` lub ręcznego wpisania
 # Obsługa klucza API – z secrets lub ręcznego wpisania
