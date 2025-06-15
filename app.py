@@ -60,15 +60,15 @@ def download_audio_from_youtube(url):
     yt = YouTube(url)
     stream = yt.streams.filter(only_audio=True).first()
     downloaded_file = stream.download(filename="temp_audio")
-
+    
     # Konwersja do MP3 (wymaga ffmpeg i pydub)
     base, ext = os.path.splitext(downloaded_file)
     mp3_file = base + ".mp3"
-
+    
     audio = AudioSegment.from_file(downloaded_file)
     audio.export(mp3_file, format="mp3")
 
-    # Usuń plik źródłowy (np. .webm, .mp4)
+    # Usuń plik źródłowy (np. .webm)
     os.remove(downloaded_file)
 
     return mp3_file
