@@ -3,4 +3,4 @@ moviepy==1.0.3
 imageio-ffmpeg==0.4.7
 openai==0.27.0
 yt-dlp==2025.6.9
-
+pydub==0.25.1
