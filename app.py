@@ -64,8 +64,12 @@ def download_audio_from_youtube(url):
             'preferredcodec': 'mp3',
             'preferredquality': '192',
         }],
-        'quiet': True,
-        'no_warnings': True,
+        'cookiefile': 'cookies.txt',  # Upewnij się, że masz ten plik w katalogu
+        'quiet': False,
+        'noplaylist': True,
+        'http_headers': {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'
+        }
     }
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
