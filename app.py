@@ -9,18 +9,46 @@ import yt_dlp
 st.set_page_config(page_title="Audio Extractor", layout="centered")
 st.title("🎧 Generator podsumowań wideo i audio 🎧")
 
-# Obsługa klucza OpenAI API – z `st.secrets` lub ręcznego wpisania
-# Obsługa klucza API – z secrets lub ręcznego wpisania
-if "OPENAI_API_KEY" in st.secrets:
-    openai.api_key = st.secrets["OPENAI_API_KEY"]
+
+if "api_key_valid" not in st.session_state:
+    st.session_state.api_key_valid = False
+if "api_key" not in st.session_state:
+    st.session_state.api_key = None
+
+# Spróbuj pobrać klucz z secrets
+api_key_from_secrets = None
+try:
+    api_key_from_secrets = st.secrets["OPENAI_API_KEY"]
+except Exception:
+    pass
+
+if api_key_from_secrets:
+    openai.api_key = api_key_from_secrets
+    st.session_state.api_key = api_key_from_secrets
+    st.session_state.api_key_valid = True
+
+if not st.session_state.api_key_valid:
+     with st.sidebar:
+        st.markdown("### 🔐 Klucz OpenAI API")
+        user_key = st.text_input("Wprowadź swój OpenAI API Key:", type="password", key="input_api_key")
+    
+    
+        if user_key:
+            try:
+                openai.api_key = user_key
+                openai.Engine.list()  # Test poprawności klucza
+            except Exception:
+                st.error("❌ Nieprawidłowy klucz API.")
+                st.stop()  # Zatrzymaj dalsze wykonanie
+            else:
+                # Jeśli test przeszedł OK
+                st.session_state.api_key = user_key
+                st.session_state.api_key_valid = True
+                st.success("✅ Klucz poprawny.")
+                st.rerun()  # Przeładuj aplikację, żeby ukryć input
 else:
-    st.markdown("🔐 Nie znaleziono klucza API OpenAI.")
-    st.markdown("Aby korzystać z tej aplikacji, wprowadź swój klucz API poniżej.")
-    user_key = st.text_input("Wprowadź swój OpenAI API Key:", type="password")
-    if user_key:
-        openai.api_key = user_key
-    else:
-        st.stop()
+    openai.api_key = st.session_state.api_key
+
 
 
 # Wybór typu pliku
