@@ -18,10 +18,8 @@ PRICING = {
 if "total_cost_usd" not in st.session_state:
     st.session_state.total_cost_usd = 0.0
 
-if "api_key_valid" not in st.session_state:
-    st.session_state.api_key_valid = False
-if "api_key" not in st.session_state:
-    st.session_state.api_key = None
+if "total_cost_usd" not in st.session_state:
+    st.session_state.total_cost_usd = 0.0
 
 # Spróbuj pobrać klucz z secrets
 api_key_from_secrets = None
