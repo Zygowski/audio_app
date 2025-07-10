@@ -9,11 +9,14 @@ import yt_dlp
 st.set_page_config(page_title="Audio Extractor", layout="centered")
 st.title("🎧 Generator podsumowań wideo i audio 🎧")
 
+USD_TO_PLN = 3.60
+PRICING = {
+    "input_tokens": 0.000005,
+    "output_tokens": 0.000015
+}
 
-if "api_key_valid" not in st.session_state:
-    st.session_state.api_key_valid = False
-if "api_key" not in st.session_state:
-    st.session_state.api_key = None
+if "total_cost_usd" not in st.session_state:
+    st.session_state.total_cost_usd = 0.0
 
 # Spróbuj pobrać klucz z secrets
 api_key_from_secrets = None
@@ -117,9 +120,14 @@ def split_text(text, max_chars=3000):
     chunks.append(text) # gdy jest juz podzielone dodajemy reszte tekstu jako ostatni fragment
     return chunks
 
+def estimate_tokens(text):
+    # Prosty szacunek: 1 token ≈ 4 znaki
+    return int(len(text) / 4)
+
 def summarize_text(text):
     chunks = split_text(text)
     summaries = []
+    total_cost = 0.0
 
     for i, chunk in enumerate(chunks):
         prompt = (
@@ -136,9 +144,19 @@ def summarize_text(text):
             temperature=0.3,
             max_tokens=1000,
         )
-        summaries.append(response.choices[0].message["content"].strip())
+        message = response["choices"][0]["message"]["content"]
+        summaries.append(message.strip())
 
+        # Oblicz koszt dla starszej wersji
+        usage = response.get("usage", {})
+        input_tokens = usage.get("prompt_tokens", 0)
+        output_tokens = usage.get("completion_tokens", 0)
+        cost = (input_tokens * PRICING["input_tokens"]) + (output_tokens * PRICING["output_tokens"])
+        total_cost += cost
+
+    st.session_state.total_cost_usd += total_cost
     return "\n\n".join(summaries)
+
 uploaded_file = None
 youtube_url = None
 
@@ -180,3 +198,7 @@ if uploaded_file is not None or (youtube_url and source_option == "🌐 YouTube"
         st.write(summary)
 
         os.remove(audio_path)
+with st.sidebar:
+    st.markdown("### 💰 Koszt podsumowania")
+    st.metric("Koszt rozmowy (USD)", f"{st.session_state.total_cost_usd:.4f}")
+    st.metric("Koszt rozmowy (PLN)", f"{st.session_state.total_cost_usd * USD_TO_PLN:.4f}")
