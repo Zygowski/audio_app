@@ -203,7 +203,10 @@ if uploaded_file is not None or (youtube_url and source_option == "🌐 YouTube"
         st.write(summary)
 
         os.remove(audio_path)
+
 with st.sidebar:
     st.markdown("### 💰 Koszt podsumowania")
     st.metric("Koszt rozmowy (USD)", f"{st.session_state.total_cost_usd:.4f}")
     st.metric("Koszt rozmowy (PLN)", f"{st.session_state.total_cost_usd * USD_TO_PLN:.4f}")
+
+
