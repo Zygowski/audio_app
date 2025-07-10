@@ -195,8 +195,9 @@ if uploaded_file is not None or (youtube_url and source_option == "🌐 YouTube"
             st.audio(audio_path)
 
         transcription = transcribe_audio(audio_path)
-        #st.markdown("### 🗒️ Transkrypcja:")
-        #st.write(transcription)
+        with st.expander("🔍 Zobacz transkrypcję"):
+            st.markdown("### 🗒️ Transkrypcja:")
+            st.write(transcription)
 
         summary = summarize_text(transcription)
         st.markdown("### 📝 Notatka:")
